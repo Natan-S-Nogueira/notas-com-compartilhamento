@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notas_com_compartilhamento/database/dbProvider.dart';
 import 'package:notas_com_compartilhamento/models/noteModel.dart';
+import 'package:provider/provider.dart';
 
 class AddNote extends StatefulWidget {
   const AddNote({super.key});
@@ -18,7 +19,7 @@ class _AddNoteState extends State<AddNote> {
   TextEditingController bodyController = TextEditingController();
 
   addNote(NoteModel note){
-    DBProvider.db.addNewNote(note);
+    Provider.of<DBProvider>(context, listen: false).addNewNote(note);
     print("Nota adicionada com sucesso.");
   }
 

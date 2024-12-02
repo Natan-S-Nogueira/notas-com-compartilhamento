@@ -1,7 +1,8 @@
 class NoteModel {
-  String title;
-  String body;
-  DateTime creation_date;
+  int? id;
+  String? title;
+  String? body;
+  DateTime? creation_date;
 
   NoteModel({
     required this.title,

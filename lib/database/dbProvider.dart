@@ -1,42 +1,35 @@
+import 'package:flutter/cupertino.dart';
 import 'package:notas_com_compartilhamento/models/noteModel.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 
-class DBProvider {
-  DBProvider._();
-  static final DBProvider db = DBProvider._();
-  static Database? _database;
+class DBProvider with ChangeNotifier {
+  String dbPath = "notas_com_compartilhamento.db";
+  int dbVersion = 2;
 
-  Future<Database?> get database async{
-    if(_database != null) {
-      return _database;
-    }
-    _database = await initDB();
-    return _database;
-  }
+  late Database _db;
+  Database get db => _db;
 
-  initDB() async{
-    return await openDatabase(join(await getDatabasesPath(), "notas_com_compartilhamento.db"),
-    onCreate: (db, version) async{
-      await db.execute('''
+  DBProvider() {
+    openDatabase(dbPath, onCreate: (db, version) {
+      db.execute('''
       CREATE TABLE notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT,
         body TEXT,
-        creation_date DATE
+        creation_date TEXT
       )
       ''');
-    }, version:1);
+    }, version: dbVersion).then((db) {
+      _db = db;
+      notifyListeners();
+    });
   }
 
   addNewNote(NoteModel note) async {
-    final db = await database;
-    db?.insert("notes", note.toMap(),
-              conflictAlgorithm: ConflictAlgorithm.replace);
+    db?.insert("notes", note.toMap());
   }
 
   Future<dynamic> getNotes() async{
-    final db = await database;
     var response = await db?.query("notes");
     if(response?.length == 0){
       return Null;

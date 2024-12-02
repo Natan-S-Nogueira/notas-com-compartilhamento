@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notas_com_compartilhamento/database/dbProvider.dart';
 import 'package:notas_com_compartilhamento/screens/add_note.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,12 +12,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      initialRoute: "/",
-      routes: {
-        "/": (context) => HomeScreen(),
-        "/AddNote": (context) => AddNote(),
-      },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<DBProvider>(
+            lazy: true,
+            create: (context) => DBProvider())
+      ],
+      child: MaterialApp(
+        initialRoute: "/",
+        routes: {
+          "/": (context) => HomeScreen(),
+          "/AddNote": (context) => AddNote(),
+        },
+      ),
     );
   }
 }
@@ -27,10 +35,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Future<List<Map<String, dynamic>>> getNotes() async{
-    final notes = await DBProvider.db.getNotes();
-    return notes;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,42 +42,36 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text("Suas Notas"),
       ),
-      body: FutureBuilder(
-          future: getNotes(),
-
-          builder: (context, noteData) {
-            switch(noteData.connectionState){
-              case ConnectionState.waiting :
-                return Center(child: CircularProgressIndicator());
-              case ConnectionState.none:
-                // TODO: Handle this case.
-              case ConnectionState.active:
-                // TODO: Handle this case.
-              case ConnectionState.done:
-                if(noteData.data == null){
-                  return Center(child: Text("Você não possui notas, crie uma."),
-                  );
-                }
-                else{
-                  return Padding(padding: const EdgeInsets.all(8.0),
-                  child: ListView.builder(
-                    itemCount: noteData.data?.length,
-                    itemBuilder: (BuildContext context, int index){
-                      String title = noteData.data?[index]['title'];
-                      String body = noteData.data?[index]['body'];
-                      String creation_date = noteData.data?[index]['creation_date'];
-                      int id = noteData.data?[index]['id'];
-                      return Card(child: ListTile(
-                        title: Text(title),
-                        subtitle: Text(body),
-                      ),);
-                    },
-                  ),
-                  );
-                }
+      body: Consumer<DBProvider>(builder: (BuildContext context, DBProvider value, Widget? child) {
+        return FutureBuilder(
+          future: value.getNotes(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if(snapshot.connectionState == ConnectionState.done){
+              if(snapshot.data == Null){
+                return Center(
+                  child: Text("Nenhuma nota encontrada."),
+                );
+              }
+              else {
+                return ListView.builder(
+                  itemCount: snapshot.data?.length ?? 0,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      title: Text(snapshot.data[index]["title"]),
+                      subtitle: Text(snapshot.data[index]["body"]),
+                    );
+                  },
+                );
+              }
             }
-          }
-      ),
+            else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          },
+        );
+      },),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
           // Navegar para a criação de uma nota
