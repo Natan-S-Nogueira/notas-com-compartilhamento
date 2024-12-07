@@ -41,17 +41,17 @@ class _AddNoteState extends State<AddNote> {
             style: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold),
           ),
           Expanded(
-              child: TextField(
-                controller: bodyController,
-                keyboardType: TextInputType.multiline,
-                maxLines: null,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: "Sua nota",
-                ),
+            child: TextField(
+              controller: bodyController,
+              keyboardType: TextInputType.multiline,
+              maxLines: null,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: "Sua nota",
               ),
             ),
-          ],
+          ),
+        ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -62,7 +62,7 @@ class _AddNoteState extends State<AddNote> {
             date = DateTime.now();
           });
           NoteModel note =
-            NoteModel(title: title, body:body, creation_date: date);
+          NoteModel(title: title, body:body, creation_date: date);
           addNote(note);
           Navigator.pushNamedAndRemoveUntil(context, "/", (route) => false);
         },
