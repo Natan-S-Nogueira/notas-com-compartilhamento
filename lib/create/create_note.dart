@@ -1,43 +1,34 @@
 import 'package:flutter/material.dart';
 
-class CreateEditNotePage extends StatefulWidget {
+class CreateNote extends StatefulWidget {
   @override
-  _CreateEditNotePageState createState() => _CreateEditNotePageState();
+  _CreateNoteState createState() => _CreateNoteState();
 }
 
-class _CreateEditNotePageState extends State<CreateEditNotePage> {
+class _CreateNoteState extends State<CreateNote> {
+  var title = '';
   var description = '';
-  var textController = TextEditingController();
-  var isEdit = false;
+  var titleController = TextEditingController();
+  var descriptionController = TextEditingController();
 
   @override
-  void initState() {
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      if (ModalRoute.of(context)!.settings.arguments != null) {
-        description = ModalRoute.of(context)!.settings.arguments as String;
-        textController.text = description;
-        isEdit = true;
-        setState(() {});
-      }
-    });
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final existingNote = ModalRoute.of(context)?.settings.arguments as Map<String, String>?;
+    if (existingNote != null) {
+      title = existingNote['title'] ?? '';
+      description = existingNote['description'] ?? '';
+      titleController.text = title;
+      descriptionController.text = description;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? 'Editar Nota' : 'Criar Nota'),
+        title: Text('Criar Nota'),
         centerTitle: true,
-        actions: [
-          if (isEdit)
-            IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () {
-                Navigator.pop(context, '');
-              },
-            ),
-        ],
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -56,7 +47,18 @@ class _CreateEditNotePageState extends State<CreateEditNotePage> {
             TextField(
               autofocus: true,
               autocorrect: true,
-              controller: textController,
+              controller: titleController,
+              maxLength: 100,
+              onChanged: (value) {
+                title = value;
+                setState(() {});
+              },
+              decoration: InputDecoration(
+                  labelText: 'Título', hintText: 'Digite o título da nota'),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: descriptionController,
               maxLines: null,
               maxLength: 1000,
               onChanged: (value) {
@@ -69,7 +71,7 @@ class _CreateEditNotePageState extends State<CreateEditNotePage> {
             SizedBox(
               height: 32,
             ),
-            if (description.isNotEmpty)
+            if (title.isNotEmpty && description.isNotEmpty)
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -77,12 +79,16 @@ class _CreateEditNotePageState extends State<CreateEditNotePage> {
                     width: 250,
                     child: ElevatedButton(
                       onPressed: () {
-                        if (description.length < 2) {
+                        if (title.length < 2 || description.length < 2) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text("Sua nota deve ter no minímo 2 letras!"),
+                            content: Text(
+                                "Título e descrição devem ter no mínimo 2 letras!"),
                           ));
                         } else {
-                          Navigator.pop(context, description);
+                          Navigator.pop(context, {
+                            'title': title,
+                            'description': description,
+                          });
                         }
                       },
                       child: Row(

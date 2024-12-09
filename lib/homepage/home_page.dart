@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:notas/export_note/export_note.dart';
+
+import '../export_note/export_note.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -6,7 +9,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  var notes = <String>[];
+  var notes = <Map<String, String>>[];
 
   @override
   Widget build(BuildContext context) {
@@ -33,48 +36,74 @@ class _HomePageState extends State<HomePage> {
               for (var i = 0; i < notes.length; i++)
                 Card(
                   child: ListTile(
-                    title: Text(notes[i]),
+                    title: Text(notes[i]['title'] ?? "Sem Título"),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.download, color: Colors.green),
+                          onPressed: () {
+                            ExportNote.export(
+                              context,
+                              notes[i]['title'] ?? "Sem Título",
+                              notes[i]['description'] ?? "",
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              notes.removeAt(i);
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Nota removida com sucesso!"),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                     onTap: () async {
                       var response = await Navigator.pushNamed(
-                          context, "/create-edit-note",
-                          arguments: notes[i]);
+                        context,
+                        "/create-note",
+                        arguments: notes[i],
+                      );
                       if (response != null) {
-                        var descripton = response as String;
-                        if (response.isEmpty) {
-                          notes.removeAt(i);
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text("Nota Excluída"),
-                          ));
-                        } else {
-                          notes[i] = descripton;
-                        }
+                        setState(() {
+                          notes[i] = response as Map<String, String>;
+                        });
                       }
-                      setState(() {});
                     },
                   ),
                   shadowColor: Colors.amberAccent,
                 ),
               OutlinedButton(
-                  onPressed: () async {
-                    var description =
-                        await Navigator.pushNamed(context, "/create-edit-note");
-                    if (description != null) {
-                      notes.add(description as String);
-                      setState(() {});
-                    }
-                  },
-                  child: SizedBox(
-                    width: 100,
-                    child: Row(
-                      children: [
-                        Icon(Icons.add),
-                        Text(
-                          'Criar Nota',
-                        )
-                      ],
-                    ),
-                  ))
-            ], // Children
+                onPressed: () async {
+                  var note =
+                  await Navigator.pushNamed(context, "/create-note");
+                  if (note != null) {
+                    setState(() {
+                      notes.add(note as Map<String, String>);
+                    });
+                  }
+                },
+                child: SizedBox(
+                  width: 100,
+                  child: Row(
+                    children: [
+                      Icon(Icons.add),
+                      Text(
+                        'Criar Nota',
+                      )
+                    ],
+                  ),
+                ),
+              )
+            ],
           ),
         ),
       ),

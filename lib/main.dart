@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:notas/widget/app_widget.dart';
 
-import 'package:flutter/services.dart';
-
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent, // status bar color
+    statusBarColor: Colors.transparent,
   ));
   runApp(AppWidget());
 }
